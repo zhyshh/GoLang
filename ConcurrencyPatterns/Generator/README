@@ -1,0 +1,1 @@
+A function that launches a go routine to produce data on a channel that it returns
