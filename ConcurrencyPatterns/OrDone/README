@@ -1,0 +1,2 @@
+OrDone channel pattern allows to close go routines gracefully, without boilerplate code
+In the example, the program run infinitely, when hit ctrl-c, all go routines are closed
