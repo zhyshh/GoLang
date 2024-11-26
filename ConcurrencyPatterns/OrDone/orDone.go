@@ -1,19 +1,16 @@
 package main
 
-
 import (
-    "fmt"
-    "sync"
+	"fmt"
+	"sync"
 	"time"
 )
-
-
 
 var wg sync.WaitGroup
 
 func main() {
 	done := make(chan interface{})
-	defer close(done)
+	//defer close(done)
 
 	cows := make(chan interface{}, 100)
 	pigs := make(chan interface{}, 100)
@@ -23,8 +20,9 @@ func main() {
 		for {
 			select {
 			case <-done:
+				fmt.Println("Pig producer done")
 				return
-			case pigs <-"oink":
+			case pigs <- "oink":
 			}
 		}
 	}()
@@ -32,37 +30,42 @@ func main() {
 		for {
 			select {
 			case <-done:
+				fmt.Println("Cow producer done")
 				return
-			case cows <-"moo":
+			case cows <- "moo":
 			}
 		}
 	}()
-	
 
 	wg.Add(1)
-	consumePig(done, pigs)
+	go consumePig(done, pigs)
 	wg.Add(1)
-	consumeCow(done, cows)
-	
+	go consumeCow(done, cows)
+
+	time.Sleep(20 * time.Second)
+	fmt.Println("Time's up, closing")
+	close(done)
 
 	wg.Wait()
 
 }
 
-func consumeCow(done <-chan interface{}, cows <-chan interface{}){
+func consumeCow(done <-chan interface{}, cows <-chan interface{}) {
 	defer wg.Done()
-	for cow := range orDone(done, cows){
+	for cow := range orDone(done, cows) {
 		time.Sleep(1 * time.Second)
 		fmt.Println(cow)
 	}
+	fmt.Println("Cow consumer done")
 }
 
-func consumePig(done <-chan interface{}, pigs <-chan interface{}){
+func consumePig(done <-chan interface{}, pigs <-chan interface{}) {
 	defer wg.Done()
-	for pig := range orDone(done, pigs){
+	for pig := range orDone(done, pigs) {
 		time.Sleep(1 * time.Second)
 		fmt.Println(pig)
 	}
+	fmt.Println("Pig consumer done")
 }
 
 func orDone(done, c <-chan interface{}) <-chan interface{} {
@@ -78,7 +81,7 @@ func orDone(done, c <-chan interface{}) <-chan interface{} {
 					return
 				}
 				select {
-				case relayStream<-v:
+				case relayStream <- v:
 				case <-done:
 					return //to prevent infinite block of above case relayStream<-v:
 				}
@@ -87,5 +90,3 @@ func orDone(done, c <-chan interface{}) <-chan interface{} {
 	}()
 	return relayStream
 }
-
-
