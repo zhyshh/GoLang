@@ -1,0 +1,1 @@
+In the worker pool pattern, we use multiple workers to handle jobs. Each worker is a separate process, and we have a way of assigning tasks to these workers. In Go, we use goroutines for the workers and channels to give them tasks and to receive the results back.
